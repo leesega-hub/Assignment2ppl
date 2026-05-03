@@ -7,4 +7,9 @@ Signature: l2ToPython(l2AST)
 Type: [Parsed | Error] => Result<string>
 */
 export const l2ToPython = (exp: Exp | Program): Result<string>  => 
+    switch (exp.tag) {
+        case "Program": {
+            const exps = exp.exps.mapResult(e => l2ToPython(e));
+
+
     makeFailure("TODO");
