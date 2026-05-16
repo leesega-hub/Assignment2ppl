@@ -1,7 +1,8 @@
 // ========================================================
-// Value type definition for L4
+// Value type definition for L3
 
-import { isPrimOp, CExp, PrimOp, VarDecl } from './L3-ast';
+//We added Binding for the methods of class
+import { isPrimOp, CExp, PrimOp, VarDecl, Binding } from './L3-ast';
 import { Env, makeEmptyEnv } from './L3-env-env';
 import { append } from 'ramda';
 import { isArray, isNumber, isString } from '../shared/type-predicates';
@@ -9,11 +10,12 @@ import { isArray, isNumber, isString } from '../shared/type-predicates';
 
 export type Value = SExpValue;
 
-export type Functional = PrimOp | Closure;
-export const isFunctional = (x: any): x is Functional => isPrimOp(x) || isClosure(x);
+//We added the Class and Object types to the Value type so that they can be returned as values from class definitions
+export type Functional = PrimOp | Closure | Class | Object;
+export const isFunctional = (x: any): x is Functional => isPrimOp(x) || isClosure(x) || isClass(x) || isObject(x);
 
 // ========================================================
-// Closure for L4 - the field env is added.
+// Closure for L3 - the field env is added.
 // We also use a frame-based representation of closures as opposed to one env per var.
 export type Closure = {
     tag: "Closure";
@@ -26,6 +28,34 @@ export const makeClosure = (params: VarDecl[], body: CExp[]): Closure =>
 export const makeClosureEnv = (params: VarDecl[], body: CExp[], env: Env): Closure =>
     ({tag: "Closure", params: params, body: body, env: env});
 export const isClosure = (x: any): x is Closure => x.tag === "Closure";
+
+// ========================================================
+// Class and Object types for L3
+export type Class = {
+    tag: "Class";   
+    fields: VarDecl[];
+    methods: Binding[];
+    env: Env;
+}
+// We added the env field to Class so that it can be used to store the environment of the class, which is needed for method lookup and inheritance
+export const makeClass = (fields: VarDecl[], methods: Binding[]): Class =>
+    ({tag: "Class", fields: fields, methods: methods, env: makeEmptyEnv()});
+// We added makeClassEnv to create a class with a given environment
+export const makeClassEnv = (fields: VarDecl[], methods: Binding[], env: Env): Class =>
+    ({tag: "Class", fields: fields, methods: methods, env: env});
+// We added isClass to check if a value is a class
+export const isClass = (x: any): x is Class => x.tag === "Class";
+
+export type Object = {
+    tag: "Object";
+    class: Class;
+    fieldVals: Value[];
+    env: Env;
+}
+// We added the env field to Object for the same reason as Class
+export const makeObject = (class: Class, fieldVals: Value[]): Object =>
+    ({tag: "Object", class: class, fieldVals: fieldVals, env: makeEmptyEnv()});
+export const isObject = (x: any): x is Object => x.tag === "Object";
 
 // ========================================================
 // SExp
